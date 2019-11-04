@@ -61,7 +61,7 @@ export default class ControlPanel extends React.Component {
     this.setState({
       selectedOption: selectedOption
     });
-    this.props.setGraphData(resultData);
+    this.props.setWordstreamData(resultData, fileName, categories);
   }
 
   render() {

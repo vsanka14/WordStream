@@ -1,8 +1,8 @@
 // Algorithm due to Jonathan Feinberg, http://static.mrfeinberg.com/bv_ch03.pdf
 // Also referenced to the implementation: by Jason Davies, https://www.jasondavies.com/wordcloud/
-import * as d3 from d3;
+import * as d3 from 'd3';
 
-d3.wordStream = function(){
+export const wordStream = (fileName) => {
     var data = [],
         size = [1200, 500],
         maxFontSize = 24,
@@ -10,11 +10,14 @@ d3.wordStream = function(){
         rotateCorner = 15,
         font = "Arial",
         flag = "n",
-        fontScale = d3.scale.linear(),
-        frequencyScale = d3.scale.linear(),
+        fontScale = d3.scaleLinear(),
+        frequencyScale = d3.scaleLinear(),
         spiral = achemedeanSpiral,
         canvas = cloudCanvas,
-        interpolation = "linear";
+        interpolation = "linear",
+        streamPath1,
+        streamPath2,
+        minFreq;
     var wordStream = {};
 
     var cloudRadians = Math.PI / 180, toDegree = 180 / Math.PI,
@@ -123,8 +126,9 @@ d3.wordStream = function(){
             dataPerTopic.push({x: size[0], y:frequencyScale(totalFrequencies[totalFrequencies.length-1][topic])});//TODO:
             allPoints.push(dataPerTopic);
         });
-        var layers = d3.layout.stack().offset('silhouette')(allPoints);
-
+        var layers = allPoints;
+        // var layers = d3.stack()(allPoints);
+        // var layers = d3.stack().offset(d3.stackOffsetSilhouette)(allPoints);
         var innerBoxes = {};
         topics.forEach((topic, i)=>{
             innerBoxes[topic] = [];
@@ -216,11 +220,12 @@ d3.wordStream = function(){
     }
 
     function buildSvg(boxes, topic){
-        streamPath1 = Array(),
-            streamPath2 = Array();
+        streamPath1 = Array();
+        streamPath2 = Array();
         var width = size[0],
             height = size[1];
-        var svg = d3.select(document.createElement('svg')).attr({
+        var svg = d3.select(document.createElement('svg'));
+        svg.attr({
             width: width,
             height: height
         });
@@ -229,20 +234,20 @@ d3.wordStream = function(){
 
         var catIndex = boxes.topics.indexOf(topic);
 
-        var area1 = d3.svg.area()
-            .interpolate(interpolation)
+        var area1 = d3.area()
+            .curve(interpolation)
             .x(function(d){return d.x; })
             .y0(0)
             .y1(function(d){return d.y0; });
 
 
-        var area2 = d3.svg.area()
-            .interpolate(interpolation)
+        var area2 = d3.area()
+            .curve(interpolation)
             .x(function(d){return d.x; })
             .y0(function(d){return (d.y + d.y0); })
             .y1(height);
-
-        graphGroup.append('path').datum(boxes.layers[catIndex])
+        
+        graphGroup.append('path').data([boxes.layers[catIndex]])
             .attr({
                 d: area1,
                 stroke: 'red',
@@ -250,7 +255,7 @@ d3.wordStream = function(){
                 fill :'red',
                 id: 'path1'
             });
-        graphGroup.append('path').datum(boxes.layers[catIndex])
+        graphGroup.append('path').data([boxes.layers[catIndex]])
             .attr({
                 d: area2,
                 stroke: 'red',
@@ -258,6 +263,7 @@ d3.wordStream = function(){
                 fill :'red',
                 id: 'path2'
             });
+            console.log(graphGroup);
         return svg;
     }
     function buildCanvas(boxes, topic){
@@ -399,7 +405,7 @@ d3.wordStream = function(){
                     c.translate((x + (w >> 1)) , (y + (h >> 1)));
                     if (d.rotate) c.rotate(d.rotate * cloudRadians);
                     c.fillText(d.text, 0, 0);
-                    if (d.padding) c.lineWidth = 2 * d.padding, c.strokeText(d.text, 0, 0);
+                    if (d.padding) {c.lineWidth = 2 * d.padding; c.strokeText(d.text, 0, 0)};
                     c.restore();
 
                     d.width = w;
@@ -554,3 +560,4 @@ d3.wordStream = function(){
     //#endregion
     return wordStream;
 };
+

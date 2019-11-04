@@ -4,10 +4,11 @@ import './index.css';
 import App from './App';
 import * as serviceWorker from './serviceWorker';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import $ from 'jquery';
 import Popper from 'popper.js';
 import 'bootstrap/dist/js/bootstrap.bundle.min';
-import * as d3 from 'd3';
+
+window.$ = window.jQuery = require('jquery');
+window.d3 = window.d3 = require('d3');
 
 ReactDOM.render(<App />, document.getElementById('root'));
 

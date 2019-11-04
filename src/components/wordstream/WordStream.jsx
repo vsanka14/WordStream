@@ -7,30 +7,34 @@ export default class WordStream extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            graphData: null
+            graphData: null,
+            fileName: null,
+            categories: null,
+            loadWordstreamData: true
         }
-        this.setGraphData = this.setGraphData.bind(this);
+        this.setWordstreamData = this.setWordstreamData.bind(this);
     }
 
-    setGraphData(resultData) {
+    setWordstreamData(resultData, fileName, categories) {
         this.setState({
-            graphData: resultData
+            graphData: resultData,
+            fileName: fileName,
+            categories, categories
+        }, ()=>{
+            this.setState({
+                loadGraphData: false
+            })
         });
     }
-
-    componentDidUpdate() {
-        console.log('graphData: ', this.state);
-    }
-
     render() {
-        const {graphData} = this.state;
+        const {graphData, fileName, categories, loadGraphData} = this.state;
         return(
             <div className="row">
                 <div className="col-3 controlPanelDiv">
-                    <ControlPanel setGraphData={this.setGraphData}/>
+                    <ControlPanel setWordstreamData={this.setWordstreamData}/>
                 </div>
                 <div className="col-9 graphDiv"> 
-                    <Graph graphData = {graphData}/>
+                    <Graph graphData = {graphData} fileName = {fileName} categories = {categories} loadGraphData={loadGraphData}/>
                 </div>
             </div> 
         )
