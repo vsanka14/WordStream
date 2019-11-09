@@ -1,7 +1,7 @@
 import * as d3 from 'd3';
 import {wordStream} from './d3.layout.wordstream';
 
-const color = d3.schemeCategory10;
+const color = d3.scaleOrdinal(d3.schemeCategory10);
 var allW;
 var opacScale;
 const initWidth = 1400,
@@ -21,7 +21,6 @@ var globalWidth = initWidth,
 var opacity, layerPath, maxFreq;
 
 export const draw = (svg, data, fileName, categories, axisGroup, xGridlinesGroup, mainGroup, legendGroup) =>{
-    console.log(svg, data, fileName, categories, axisGroup, xGridlinesGroup, mainGroup, legendGroup);
     //Layout data
     var font = "Arial";
     var interpolation = "cardinal";
@@ -58,8 +57,8 @@ export const draw = (svg, data, fileName, categories, axisGroup, xGridlinesGroup
             height: globalHeight,
         });
 
-    var area = d3.svg.area()
-        .interpolate(interpolation)
+    var area = d3.area()
+        .curve(d3.curveLinear)
         .x(function (d) {
             return (d.x);
         })
@@ -76,16 +75,16 @@ export const draw = (svg, data, fileName, categories, axisGroup, xGridlinesGroup
         dates.push(row.date);
     });
 
-    var xAxisScale = d3.scaleOrdinal().domain(dates).rangeBands([0, width]);
-    var xAxis = d3.svg.axis().orient('bottom').scale(xAxisScale);
+    var xAxisScale = d3.scaleBand().domain(dates).range([0, width]);
+    var xAxis = d3.axisBottom(xAxisScale);
 
     axisGroup.attr('transform', 'translate(' + (margins.left) + ',' + (height + margins.top + axisPadding + legendHeight) + ')');
     var axisNodes = axisGroup.call(xAxis);
     styleAxis(axisNodes);
 
     //Display the vertical gridline
-    var xGridlineScale = d3.scaleOrdinal().domain(d3.range(0, dates.length + 1)).rangeBands([0, width + width / boxes.data.length]);
-    var xGridlinesAxis = d3.svg.axis().orient('bottom').scale(xGridlineScale);
+    var xGridlineScale = d3.scaleBand().domain(d3.range(0, dates.length + 1)).range([0, width + width / boxes.data.length]);
+    var xGridlinesAxis = d3.axisBottom(xGridlineScale);
 
     xGridlinesGroup.attr('transform', 'translate(' + (margins.left - width / boxes.data.length / 2) + ',' + (height + margins.top + axisPadding + legendHeight + margins.bottom) + ')');
     var gridlineNodes = xGridlinesGroup.call(xGridlinesAxis.tickSize(-height - axisPadding - legendHeight - margins.bottom, 0, 0).tickFormat(''));
@@ -96,14 +95,14 @@ export const draw = (svg, data, fileName, categories, axisGroup, xGridlinesGroup
     var wordStreamG = mainGroup.append('g').attr("id", "wordStreamG");
 
 // =============== Get BOUNDARY and LAYERPATH ===============
-    const lineCardinal = d3.svg.line()
+    const lineCardinal = d3.line()
         .x(function (d) {
             return d.x;
         })
         .y(function (d) {
             return d.y;
         })
-        .interpolate("cardinal");
+        .curve(d3.curveCardinal);
 
     var boundary = [];
     for (var i = 0; i < boxes.layers[0].length; i++) {
@@ -121,7 +120,6 @@ export const draw = (svg, data, fileName, categories, axisGroup, xGridlinesGroup
     var lenb = boundary.length;
 
     // Get the string for path
-
     var combined = lineCardinal(boundary.slice(0, lenb / 2))
         + "L"
         + lineCardinal(boundary.slice(lenb / 2, lenb))
@@ -137,42 +135,44 @@ export const draw = (svg, data, fileName, categories, axisGroup, xGridlinesGroup
             'fill-opacity': 1,
             'stroke-opacity': 0,
         });
+        // console.log('line139 layerPath: ', combined);
     // draw curves
     var topics = boxes.topics;
 
     var curve = mainGroup.selectAll('.curve').data(boxes.layers);
-
-    curve.exit().remove();
-
+    // console.log(curve);
     curve.enter()
         .append('path')
         .attr('d', area)
         .style('fill', function (d, i) {
             return color(i);
         })
-        .attr({
-            "class": "curve",
-            'fill-opacity': 0,
-            stroke: 'black',
-            'stroke-width': 0,
-            topic: function (d, i) {
-                return topics[i];
-            }
-        });
+        .attr('class', 'curve')
+        .attr('fill-opacity', 0)
+        .attr('stroke', 'black')
+        .attr('stroke-width', 0)
+        .attr('topic', (d, i)=>topics[i]);
+        // .attr({
+        //     "class": "curve",
+        //     'fill-opacity': 0,
+        //     stroke: 'black',
+        //     'stroke-width': 0,
+        //     topic: function (d, i) {
+        //         return topics[i];
+        //     }
+        // });
 
-    curve.attr("d", area)
+    curve
+        .attr('fill-opacity', 0)
+        .attr('stroke', 'black')
+        .attr('stroke-width', 0)
+        .attr('topic', (d, i)=>topics[i])
+        .attr("d", area)
         .style('fill', function (d, i) {
             return color(i);
-        })
-        .attr({
-            'fill-opacity': 0,
-            stroke: 'black',
-            'stroke-width': 0,
-            topic: function (d, i) {
-                return topics[i];
-            }
         });
-
+    
+    curve.exit().remove();
 
     var allWords = [];
     d3.map(boxes.data, function (row) {
@@ -257,40 +257,48 @@ export const draw = (svg, data, fileName, categories, axisGroup, xGridlinesGroup
         texts.exit().remove();
 
         var textEnter = texts.enter().append('g')
-            .attr({
-                transform: function (d) {
-                    return 'translate(' + d.x + ', ' + d.y + ')rotate(' + d.rotate + ')';
-                }
-            })
-            .attr("class", "word")
-            .append('text')
+        .attr('transform', function (d) {
+            return 'translate(' + d.x + ', ' + d.y + ')rotate(' + d.rotate + ')';
+        })
+        .attr("class", "word")
+        .append('text')
 
         textEnter
             .text(function (d) {
                 return d.text;
             })
-            .attr({
-                "id": d => d.id,
-                "class": "textData",
-                'font-family': font,
-                'font-size': function (d) {
-                    return d.fontSize;
-                },
-                "fill": function (d, i) {
-                    return color(categories.indexOf(d.topic));
-                },
-                "fill-opacity": function (d) {
-                    return opacity(d.sudden);
-                },
-                'text-anchor': 'middle',
-                'alignment-baseline': 'middle',
-                topic: function (d) {
-                    return d.topic;
-                },
-                visibility: function (d) {
-                    return d.placed ? "visible" : "hidden";
-                }
-            });
+            .attr('id', (d)=>d.id)
+            .attr('class', 'textData')
+            .attr('font-family', font)
+            .attr('font-size', (d)=>d.fontSize)
+            .attr('fill', (d, i)=>color(categories.indexOf(d.topic)))
+            .attr('fill-opacity', (d)=>opacity(d.sudden))
+            .attr('text-anchor', 'middle')
+            .attr('alignment-baseline', 'middle')
+            .attr('topic', (d)=>d.topic)
+            .attr('visibility', (d)=>d.placed?'visible':'hidden')
+            // .attr({
+            //     "id": d => d.id,
+            //     "class": "textData",
+            //     'font-family': font,
+            //     'font-size': function (d) {
+            //         return d.fontSize;
+            //     },
+            //     "fill": function (d, i) {
+            //         return color(categories.indexOf(d.topic));
+            //     },
+            //     "fill-opacity": function (d) {
+            //         return opacity(d.sudden);
+            //     },
+            //     'text-anchor': 'middle',
+            //     'alignment-baseline': 'middle',
+            //     topic: function (d) {
+            //         return d.topic;
+            //     },
+            //     visibility: function (d) {
+            //         return d.placed ? "visible" : "hidden";
+            //     }
+            // });
 
         texts.transition().duration(800)
             .attr({
@@ -475,22 +483,32 @@ export const draw = (svg, data, fileName, categories, axisGroup, xGridlinesGroup
             .attr('transform', function (d, i) {
                 return 'translate(' + 10 + ',' + (i * legendFontSize) + ')';
             });
-        legendNodes.append('circle').attr({
-            r: 5,
-            fill: function (d, i) {
-                return color(i);
-            },
-            'fill-opacity': 1,
-            stroke: 'black',
-            'stroke-width': .5,
-        });
+        legendNodes.append('circle')
+        .attr('r', 5)
+        .attr('fill', (d, i)=>color(i))
+        .attr('fill-opacity', 1)
+        .attr('stroke', 'black')
+        .attr('stroke-width', 0.5);
+        // .attr({
+        //     r: 5,
+        //     fill: function (d, i) {
+        //         return color(i);
+        //     },
+        //     'fill-opacity': 1,
+        //     stroke: 'black',
+        //     'stroke-width': .5,
+        // });
         legendNodes.append('text').text(function (d) {
             return d;
-        }).attr({
-            'font-size': legendFontSize,
-            'alignment-baseline': 'middle',
-            dx: 8
-        });
+        })
+        .attr('font-size', legendFontSize)
+        .attr('alignment-baseline', 'middle')
+        .attr('dx', 8)
+        // .attr({
+        //     'font-size': legendFontSize,
+        //     'alignment-baseline': 'middle',
+        //     dx: 8
+        // });
         // spinner.stop();
     };
 }

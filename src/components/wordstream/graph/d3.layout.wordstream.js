@@ -235,35 +235,31 @@ export const wordStream = (fileName) => {
         var catIndex = boxes.topics.indexOf(topic);
 
         var area1 = d3.area()
-            .curve(interpolation)
+            .curve(d3.curveLinear)
             .x(function(d){return d.x; })
             .y0(0)
             .y1(function(d){return d.y0; });
 
 
         var area2 = d3.area()
-            .curve(interpolation)
+            .curve(d3.curveLinear)
             .x(function(d){return d.x; })
             .y0(function(d){return (d.y + d.y0); })
             .y1(height);
         
-        graphGroup.append('path').data([boxes.layers[catIndex]])
-            .attr({
-                d: area1,
-                stroke: 'red',
-                'stroke-width': 2,
-                fill :'red',
-                id: 'path1'
-            });
-        graphGroup.append('path').data([boxes.layers[catIndex]])
-            .attr({
-                d: area2,
-                stroke: 'red',
-                'stroke-width': 2,
-                fill :'red',
-                id: 'path2'
-            });
-            console.log(graphGroup);
+        graphGroup.append('path').datum(boxes.layers[catIndex])
+        .attr('d', area1)
+        .attr('stroke', 'red')
+        .attr('stroke-width', 2)
+        .attr('fill', 'red')
+        .attr('id', 'path1');
+
+        graphGroup.append('path').datum(boxes.layers[catIndex])
+        .attr('d', area2)
+        .attr('stroke', 'red')
+        .attr('stroke-width', 2)
+        .attr('fill', 'red')
+        .attr('id', 'path2');
         return svg;
     }
     function buildCanvas(boxes, topic){
