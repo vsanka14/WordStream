@@ -1,3 +1,7 @@
 .controlPanelDiv, .graphDiv{
     border: 1px solid black;
 }
+.x-axis line, .x-axis path {
+    fill: none;
+    stroke: none;
+}

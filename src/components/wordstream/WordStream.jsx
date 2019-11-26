@@ -1,6 +1,6 @@
 import React from 'react';
-import ControlPanel from './control-panel/ControlPanel.jsx';
-import Graph from './graph/Graph.jsx';
+import WS from './boxes/WS.jsx';
+
 import './WordStream.css';
 
 export default class WordStream extends React.Component {
@@ -30,12 +30,12 @@ export default class WordStream extends React.Component {
         const {graphData, fileName, categories, loadGraphData} = this.state;
         return(
             <div className="row">
-                <div className="col-3 controlPanelDiv">
-                    <ControlPanel setWordstreamData={this.setWordstreamData}/>
-                </div>
-                <div className="col-9 graphDiv"> 
-                    <Graph graphData = {graphData} fileName = {fileName} categories = {categories} loadGraphData={loadGraphData}/>
-                </div>
+                <WS 
+                    globalHeight={1200} 
+                    globalWidth={800} 
+                    minFontSize={15}
+                    maxFontSize={35}
+                />
             </div> 
         )
     }
