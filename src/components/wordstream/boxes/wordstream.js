@@ -1,8 +1,7 @@
 import * as d3 from 'd3';
 
 export default function wordStream(data) {
-    console.log(data);
-    let size = [1200, 800],
+    let size = [1200, 1200],
         maxFontSize = 24,
         minFontSize = 10,
         fontScale = null,
@@ -121,7 +120,6 @@ export default function wordStream(data) {
             layers: stackedLayers,
             innerBoxes: innerBoxes
         };
-        console.log(innerBoxes);
         return boxes;
     }
 
@@ -198,11 +196,7 @@ export default function wordStream(data) {
             var d = {};
             while (++di < n) {
                 d = words[di];
-                try{
-                    var pixels = c.getImageData(d.x, d.y, d.width, d.height).data;
-                } catch(err){
-                    console.log(pixels, d);
-                }
+                var pixels = c.getImageData(d.x, d.y, d.width, d.height).data;
                 d.sprite = Array();
                 for(var i = 0; i<<2 < pixels.length; i++){
                     d.sprite.push(pixels[i<<2]);

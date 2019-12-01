@@ -1,7 +1,11 @@
 .controlPanelDiv, .graphDiv{
-    border: 1px solid black;
+    border: 1px solid #D3D3D3;
 }
 .x-axis line, .x-axis path {
     fill: none;
     stroke: none;
+}
+
+.Select-control {
+    padding: 0;
 }

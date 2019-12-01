@@ -1,5 +1,7 @@
 import React from 'react';
-import data from './youtube.json';
+// import data2 from './news.json';
+// import data3 from './youtube-sorted.json';
+import data from './youtube-sorted.json';
 import wordStream from './wordstream';
 import * as d3 from 'd3';
 
@@ -21,7 +23,7 @@ export default class WS extends React.Component{
         this.drawAxis = this.drawAxis.bind(this);
         this.makeBoxes = this.makeBoxes.bind(this);
         this.frequencyScale = null;
-        this.streamHeightScale = d3.scaleLinear().domain([400, 800]).range([150, 400]);
+        this.streamHeightScale = d3.scaleLinear().domain([400, 1200]).range([150, 400]);
         this.area = d3.area()
         .curve(d3.curveCardinal)
             .x((d, i)=>{return ((i)*this.boxWidth);})
@@ -66,7 +68,7 @@ export default class WS extends React.Component{
         .attr('class', 'curve')
         .attr('d', this.area)
         .attr('fill-opacity', 0)
-        .attr('stroke-width', 0)
+        .attr('stroke-width', 1)
         .attr('stroke', 'black')
         .attr('topic', (d,i)=>this.boxes.topics[i])
         .style('fill', (d,i)=>this.color(i));
@@ -113,6 +115,7 @@ export default class WS extends React.Component{
                 allWords = allWords.concat(row.words[topic]);
             });
         });
+        console.log('All the words in WS: ', allWords);
         var texts = this.wordstreamSvg.selectAll('.word').data(allWords, d => d.id);
 
         texts.exit().remove();
@@ -136,7 +139,8 @@ export default class WS extends React.Component{
             .attr('fill-opacity', 1)
             .attr('text-anchor', 'middle')
             .attr('topic', d=>d.topic)
-            .attr('visibility', d=>d.placed?'visible':'hidden');
+            .attr('visibility', d=>d.placed?'visible':'hidden')
+            // .attr('visibility', 'visible');
 
         texts.transition().duration(800)
             .attr('transform', function (d) {
@@ -244,6 +248,7 @@ export default class WS extends React.Component{
     }
 
     componentDidMount() {
+        console.log(data);
       data.forEach(item=>{
             Object.keys(item.words).forEach(topic=>{
                 item.words[topic].forEach(word=>{
@@ -260,8 +265,8 @@ export default class WS extends React.Component{
         this.svg
             .attr('id', 'mainSvg')
             .attr('width', 1200)
-            .attr('height', 800)
-            .attr('transform', 'translate(50, 0)');
+            .attr('height', 1200)
+            .attr('transform', 'translate(50, 300)');
         this.wordstreamSvg = this.svg.append('g');
         this.wordstreamSvg.attr('id', 'wordstreamSvg');
         this.axisGroup = this.svg.append('g').attr("id", "axisGroup");
@@ -270,7 +275,9 @@ export default class WS extends React.Component{
     }
     render() {
         return(
-            <div id="boxes"> </div>
+            <div>
+                <div id="boxes"> </div>
+            </div>
         )
     }
 }
