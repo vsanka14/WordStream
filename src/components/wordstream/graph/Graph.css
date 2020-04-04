@@ -7,3 +7,7 @@
   #gridLinesSvg path {
     stroke-width: 0;
   }
+
+  #parentSvg {
+    width: 100%;
+  }

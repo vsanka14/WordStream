@@ -16,7 +16,8 @@ export default class ForceDirectedGraph extends React.Component {
     constructor(props) {
         super(props);
         this.legendSvg = null;
-        this.colorScheme = d3.scaleOrdinal(d3.schemeDark2);
+        let longColors = [...d3.schemeDark2, ...d3.schemeSet3];
+        this.colorScheme = d3.scaleOrdinal(longColors);
         this.state = {
             currentForceData: null
         }
@@ -54,7 +55,7 @@ export default class ForceDirectedGraph extends React.Component {
             inverseMap[value] = key;
         });
         let self = this;
-        this.legendSvg.attr('transform', 'translate(' + 200 + ',' + (300) + ')');
+        this.legendSvg.attr('transform', 'translate(' + 20 + ',' + (30) + ')');
         var legendNodes = this.legendSvg.selectAll('g').data(activeFields).enter().append('g')
             .attr('transform', function (d, i) {
                 return 'translate(' + 10 + ',' + ( (i * 10)) + ')';
@@ -143,9 +144,13 @@ export default class ForceDirectedGraph extends React.Component {
 
     drawForceGraph(graph) {
         d3.select('#forceSvg').selectAll('*').remove();
+        var radius = 15; 
+        // var width = 960,
+            // height = 500;
         var svg = d3.select("#forceSvg"),
             width = +svg.attr("width"),
             height = +svg.attr("height");
+            console.log(width, height);
 
             var color = this.colorScheme;
 
@@ -194,16 +199,24 @@ export default class ForceDirectedGraph extends React.Component {
             .links(graph.links);
 
             function ticked() {
+            node
+                .attr("transform", function(d) {
+                    let xPos = Math.max(radius, Math.min(width - radius, d.x));
+                    let yPos = Math.max(radius, Math.min(height - radius, d.y));
+                    return "translate(" + xPos + "," + yPos + ")";
+                })
+                // .attr("cx", function(d) { return d.x = Math.max(radius, Math.min(width - radius, d.x)); })
+                // .attr("cy", function(d) { return d.y = Math.max(radius, Math.min(height - radius, d.y)); });
+
             link
                 .attr("x1", function(d) { return d.source.x; })
                 .attr("y1", function(d) { return d.source.y; })
                 .attr("x2", function(d) { return d.target.x; })
                 .attr("y2", function(d) { return d.target.y; });
-
-            node
-                .attr("transform", function(d) {
-                return "translate(" + d.x + "," + d.y + ")";
-                })
+            // node
+            //     .attr("transform", function(d) {
+            //     return "translate(" + d.x + "," + d.y + ")";
+            //     })
             }
 
             function dragstarted(d) {
@@ -226,7 +239,10 @@ export default class ForceDirectedGraph extends React.Component {
 
     render() {
         return(
-            <svg id="forceSvg" viewBox="-500 -300 1200 800">
+            <svg id="forceSvg" 
+                width="1200"
+                height="600"
+                >
             </svg> 
         )
     }

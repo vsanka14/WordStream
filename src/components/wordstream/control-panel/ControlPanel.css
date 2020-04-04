@@ -1,6 +1,13 @@
+form {
+  font-size: 13px !important;
+}
+
 .submitBtn {
-    background-color: black !important;
-    color: white !important;
+  max-height: 100px;
+}
+
+.control-label{
+  display: flex!important;
 }
 
 .submitBtn:hover{
@@ -61,7 +68,7 @@
 .range-slider__value {
   display: inline-block;
   position: relative;
-  width: 60px;
+  width: 120px;
   color: #fff;
   line-height: 20px;
   text-align: center;
@@ -69,6 +76,7 @@
   background: #2c3e50;
   padding: 5px 10px;
   margin-left: 8px;
+  max-height: 40px;
 }
 .range-slider__value:after {
   position: absolute;

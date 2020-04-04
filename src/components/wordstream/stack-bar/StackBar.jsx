@@ -4,6 +4,9 @@ import * as d3 from 'd3';
 export default class StackBar extends React.Component {
     constructor(props) {
         super(props);
+        this.state = {
+            nameOfPerson: null
+        }
     }
     
 
@@ -12,6 +15,9 @@ export default class StackBar extends React.Component {
             let columns = null;
             let keepKeys = null;
             let stackData = null;
+            this.setState({
+                nameOfPerson: this.props.stackBarData[0].text
+            })
             switch(this.props.activeGraph) {
                 case 'olympic_sport':
                 case 'olympic':
@@ -53,12 +59,11 @@ export default class StackBar extends React.Component {
     }
 
     draw(data, columns) {
-        console.log('drawing with data: ', data);
         let self = this;
         var svg = d3.select("#stackBar"),
         margin = {top: 20, right: 20, bottom: 30, left: 40},
         width = +svg.attr("width") - margin.left - margin.right,
-        height = +svg.attr("height") - margin.top - margin.bottom + 500,
+        height = +svg.attr("height") - margin.top - margin.bottom,
         g = svg.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
         // set x scale
@@ -72,9 +77,9 @@ export default class StackBar extends React.Component {
         .rangeRound([height, 0]);
 
         // set the colors
+        let colors = this.props.activeGraph === 'youtube'? d3.schemePaired : ["#d4af37", "#cd7f32", "#aaa9ad", "#6b486b"];
         var z = d3.scaleOrdinal()
-        .range(["#98abc5", "#8a89a6", "#7b6888", "#6b486b", "#a05d56", "#d0743c", "#ff8c00"]);
-
+        .range(colors);
         data.forEach(item=>{
         let total = 0;
         columns.forEach(key=>{
@@ -85,8 +90,10 @@ export default class StackBar extends React.Component {
         var keys = columns;
         let maxTotal = d3.max(data, function(d) { return d.total; });
         data.sort(function(a, b) { return b.total - a.total; });
-        x.domain(data.map(function(d) { return d.year; })).range([0, 300]);
-        y.domain([0, d3.max(data, function(d) { return d.total; })]).range([450, 0]).nice();
+        let xRangeScale = d3.scaleLinear().domain([0, 8]).range([100, 340]);
+        let xRange = xRangeScale(data.length);
+        x.domain(data.map(function(d) { return d.year; })).range([0, xRange]);
+        y.domain([0, d3.max(data, function(d) { return d.total; })]).range([height, 0]).nice();
         z.domain(keys);
 
         g.append("g")
@@ -136,21 +143,20 @@ export default class StackBar extends React.Component {
         .selectAll("g")
         .data(keys.slice().reverse())
         .enter().append("g")
-        .attr("transform", function(d, i) { return "translate(400," + i * 20 + ")"; });
+        .attr("transform", function(d, i) { return "translate(0," + i * 20 + ")"; });
 
         legend.append("rect")
-        .attr("x", width - 19)
+        .attr("x", width)
         .attr("width", 19)
         .attr("height", 19)
         .attr("fill", z);
 
         legend.append("text")
-        .attr("x", width - 24)
+        .attr("x", width - 5)
         .attr("y", 9.5)
         .attr("dy", "0.32em")
         .text(function(d) { return d; });
 
-        // Prep the tooltip bits, initial display is hidden
         var tooltip = svg.append("g")
         .attr("class", "tooltip")
         .style("display", "none");
@@ -171,7 +177,15 @@ export default class StackBar extends React.Component {
 
     render(){
         return(
-            <svg viewBox="0 0 960 500" id="stackBar"></svg>
+            <div>
+                <h3> 
+                    {this.state.nameOfPerson}
+                </h3> 
+                <h6> 
+                    {this.props.activeGraph === 'youtube' ? 'Likes and dislikes over months ' : 'Medals won over the years'} 
+                </h6>
+                <svg viewBox="0 0 400 500" height="500" width="400" id="stackBar"></svg>
+            </div>
         )
     }
 }

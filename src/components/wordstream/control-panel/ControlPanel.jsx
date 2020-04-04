@@ -8,6 +8,8 @@ import calcLayers from './calcLayers';
 import calcWords from './calcWords';
 import * as $ from 'jquery';
 import './ControlPanel.css';
+import Slider from 'rc-slider';
+import 'rc-slider/assets/index.css';
 
 export default class ControlPanel extends React.Component {
     constructor(props) {
@@ -58,12 +60,13 @@ export default class ControlPanel extends React.Component {
         this.state = {
             selectedOption: null,
             currentData: null,
-            noOfTopTerms: 40,
+            noOfTopTerms: 50,
             minFontSize: 10,
             maxFontSize: 24,
+            fontRange: [10, 24],
             topicOptions: null,
             selectedTopicOptions: null,
-            selectedTopics: null
+            selectedTopics: []
         }
         this.handleSelectChange = this.handleSelectChange.bind(this);
         this.handleFormChange = this.handleFormChange.bind(this);
@@ -139,142 +142,143 @@ export default class ControlPanel extends React.Component {
         });
     }
 
-    handleControlPanelSubmit(e) {
+    async handleControlPanelSubmit(e) {
         e.preventDefault();
-        let currentData = null;
-        let activeGraph = null;
-        switch(this.state.selectedOption.value) {
-            case 'youtube':
-                currentData = $.extend(true, [], youtubeData);
-                activeGraph = 'youtube';
-                break;
-            case 'olympic':
-                currentData = $.extend(true, [], olympicData);
-                activeGraph = 'olympic';
-                break;
-            case 'olympic_sport':
-                currentData = $.extend(true, [], olympicSportData);
-                activeGraph = 'olympic_sport';
-                break;
-        }
-        this.keepSelectedTopics(currentData);
-        this.trimTerms(currentData);
-        let layersData = calcLayers({
-            data: currentData,
-            screenDimensions: this.props.screenDimensions
-        });
-        let wordsData = calcWords({
-            data: currentData,
-            screenDimensions: this.props.screenDimensions,
-            minFontSize: parseInt(this.state.minFontSize),
-            maxFontSize: parseInt(this.state.maxFontSize),
-            ...layersData
-        });
-        let allWords = [];
-        wordsData.map((row)=>{
-            layersData.fields.forEach(topic => {
-                allWords = allWords.concat(row.words[topic]);
+        await this.props.setLoading(true);
+        setTimeout(() => {
+            let currentData = null;
+            let activeGraph = null;
+            switch(this.state.selectedOption.value) {
+                case 'youtube':
+                    currentData = $.extend(true, [], youtubeData);
+                    activeGraph = 'youtube';
+                    break;
+                case 'olympic':
+                    currentData = $.extend(true, [], olympicData);
+                    activeGraph = 'olympic';
+                    break;
+                case 'olympic_sport':
+                    currentData = $.extend(true, [], olympicSportData);
+                    activeGraph = 'olympic_sport';
+                    break;
+            }
+            this.keepSelectedTopics(currentData);
+            this.trimTerms(currentData);
+            let layersData = calcLayers({
+                data: currentData,
+                screenDimensions: this.props.screenDimensions
             });
-        });
-        this.props.setActiveGraph(activeGraph);
-        this.props.setLayersData(layersData);
-        this.props.setWordsData(allWords);
-        console.log('currentData: ', currentData);
+            let wordsData = calcWords({
+                data: currentData,
+                screenDimensions: this.props.screenDimensions,
+                minFontSize: parseInt(this.state.fontRange[0]),
+                maxFontSize: parseInt(this.state.fontRange[1]),
+                ...layersData
+            });
+            let allWords = [];
+            wordsData.map((row)=>{
+                layersData.fields.forEach(topic => {
+                    allWords = allWords.concat(row.words[topic]);
+                });
+            });
+            this.props.setActiveGraph(activeGraph);
+            this.props.setLayersData(layersData);
+            this.props.setWordsData(allWords);
+        }, 1);
     }
 
     render() {
-        const { selectedOption, minFontSize, maxFontSize, noOfTopTerms } = this.state;
+        const Range = Slider.Range;
+        const { selectedOption, minFontSize, maxFontSize, noOfTopTerms, fontRange } = this.state;
         return (
-            <div className="col-12">
                 <form>
-                    <div className="form-group row">
-                        <label className="control-label"> Choose dataset </label>
-                        <Select
-                            theme={theme => ({
-                                ...theme,
-                                borderRadius: 0,
-                                colors: {
-                                    ...theme.colors,
-                                    primary25: 'hotpink',
-                                    primary: 'black',
-                                },
-                            })}
-                            className="col-12"
-                            value={selectedOption}
-                            onChange={this.handleSelectChange}
-                            options={this.fileList}
-                        />
-                    </div> 
-                    <div className="form-group row">
-                        <label className="control-label" htmlFor="topTerms"> Top terms: <span className="range-slider__value">{noOfTopTerms}</span></label> 
-                        <div className="col-12 ml-2"> 
-                            <input 
-                                type="range" 
-                                id="topTerms" 
-                                className="form-control range-slider__range" 
+                    <div className="form-row">
+                        <div className="col-12 col-sm-12 col-md-3 col-lg-3 p-2">
+                            <label className="control-label"> Choose dataset </label>
+                            <Select
+                                theme={theme => ({
+                                    ...theme,
+                                    borderRadius: 0,
+                                    colors: {
+                                        ...theme.colors,
+                                        primary25: 'hotpink',
+                                        primary: 'black',
+                                    },
+                                })}
+                                value={selectedOption}
+                                onChange={this.handleSelectChange}
+                                options={this.fileList}
+                            />
+                        </div>
+                        <div className="col-12 col-sm-12 col-md-2 col-lg-2 p-2"> 
+                            <label className="control-label" htmlFor="topTerms"> Top terms: <span className="range-slider__value">{`${noOfTopTerms} terms`}</span></label>
+                            <Slider
                                 value={noOfTopTerms}
-                                name="noOfTopTerms"
-                                onChange={this.handleFormChange}/>
+                                onChange={(value)=>this.setState({noOfTopTerms: value})}
+                                trackStyle={{backgroundColor: '#2c3e50', height: 10 }}
+                                handleStyle={{
+                                    height: 23,
+                                    width: 23,
+                                    borderColor: '#1abc9c'
+                                  }}
+                            />
+                        </div>
+                        <div className="col-12 col-sm-12 col-md-2 col-lg-2 p-2"> 
+                            <label className="control-label" htmlFor="minFont"> Font Range: <span className="range-slider__value">{`${fontRange[0]}px - ${fontRange[1]}px`}</span></label> 
+                            <Range 
+                                allowCross={false} 
+                                defaultValue={[10, 24]} 
+                                min={7} 
+                                max={40} 
+                                value={this.state.fontRange} 
+                                onChange={(value)=>this.setState({fontRange: value})} 
+                                trackStyle={[{backgroundColor: '#2c3e50', height: 10 }, {backgroundColor: '#2c3e50', height: 10 }]}
+                                handleStyle={[{
+                                    height: 23,
+                                    width: 23,
+                                    borderColor: '#1abc9c'
+                                  },
+                                  {
+                                    height: 23,
+                                    width: 23,
+                                    borderColor: '#1abc9c'
+                                  }]}/>
+                        </div>
+                        <div className="col-12 col-sm-12 col-md-4 col-lg-4 p-2">
+                            <label className="control-label"> Add more topics. </label>
+                            <Select
+                                theme={theme => ({
+                                    ...theme,
+                                    borderRadius: 0,
+                                    colors: {
+                                        ...theme.colors,
+                                        primary25: 'hotpink',
+                                        primary: 'black',
+                                    },
+                                })}
+                                isDisabled={this.state.selectedOption===null}
+                                components={this.animatedComponents}
+                                isMulti
+                                options={this.state.topicOptions}
+                                value={this.state.selectedTopicOptions}
+                                onChange={(options)=>{
+                                    let selectedTopics = options ? options.map(item=>item.value) : []
+                                    this.setState(
+                                        {
+                                            selectedTopics: selectedTopics,
+                                            selectedTopicOptions: options
+                                        
+                                        })
+                                }}
+                            />
+                        </div>
+                        <div className="col-1 p-2">
+                            <label className="control-label"> &nbsp; </label>
+                            <button className="btn btn-outline-dark submitBtn" onClick={this.handleControlPanelSubmit} disabled={this.state.selectedTopics.length===0}> Submit </button>
                         </div>
                     </div> 
-                    <div className="form-group row">
-                        <label className="control-label" htmlFor="minFont"> Minimum Font Size: <span className="range-slider__value">{minFontSize}</span></label> 
-                        <div className="col-12 ml-2"> 
-                            <input 
-                                type="range" 
-                                id="minFont" 
-                                className="form-control range-slider__range"
-                                value={minFontSize}
-                                name="minFontSize"
-                                onChange={this.handleFormChange}
-                                />
-                        </div>
-                    </div> 
-                    <div className="form-group row">
-                        <label className="control-label" htmlFor="topTerms"> Maximum Font Size:  <span className="range-slider__value">{maxFontSize}</span> </label> 
-                        <div className="col-12 ml-2 range-slider"> 
-                            <input 
-                                type="range" 
-                                id="maxFont" 
-                                className="form-control range-slider__range"
-                                value={maxFontSize}
-                                name="maxFontSize"
-                                onChange={this.handleFormChange}/>
-                        </div>
-                    </div> 
-                    <div className="form-group row">
-                        <label className="control-label"> Add more topics. </label>
-                        <Select
-                            theme={theme => ({
-                                ...theme,
-                                borderRadius: 0,
-                                colors: {
-                                    ...theme.colors,
-                                    primary25: 'hotpink',
-                                    primary: 'black',
-                                },
-                            })}
-                            components={this.animatedComponents}
-                            isMulti
-                            className="col-12"
-                            options={this.state.topicOptions}
-                            value={this.state.selectedTopicOptions}
-                            onChange={(options)=>{
-                                let selectedTopics = options ? options.map(item=>item.value) : null
-                                this.setState(
-                                    {
-                                        selectedTopics: selectedTopics,
-                                        selectedTopicOptions: options
-                                    
-                                    })
-                            }}
-                        />
-                    </div> 
-                    {/* <CustomizedRange/> */}
                     <br/>
-                    <button className="btn btn-lg d-flex submitBtn" onClick={this.handleControlPanelSubmit} disabled={!this.state.selectedTopics}> Submit </button>
                 </form>
-           </div>
         )
     }
 }

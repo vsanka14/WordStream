@@ -1,7 +1,6 @@
 import 'rc-slider/assets/index.css';
 
 import React from 'react';
-import ReactDOM from 'react-dom';
 import Slider from 'rc-slider';
 
 const Range = Slider.Range;
@@ -33,22 +32,10 @@ export default class CustomizedRange extends React.Component {
       value,
     });
   }
-  handleApply = () => {
-    const { lowerBound, upperBound } = this.state;
-    this.setState({ value: [lowerBound, upperBound] });
-  }
   render() {
     return (
       <div>
-        <label>LowerBound: </label>
-        <input type="number" value={this.state.lowerBound} onChange={this.onLowerBoundChange} />
-        <br />
-        <label>UpperBound: </label>
-        <input type="number" value={this.state.upperBound} onChange={this.onUpperBoundChange} />
-        <br />
-        <button onClick={this.handleApply}>Apply</button>
-        <br /><br />
-        {/* <Range allowCross={false} value={this.state.value} onChange={this.onSliderChange} /> */}
+        <Range allowCross={false} min={10} max={50} value={this.state.value} onChange={this.onSliderChange} />
       </div>
     );
   }

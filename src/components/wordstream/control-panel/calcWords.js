@@ -9,8 +9,6 @@ export default function calcWords(props) {
         cloudRadians = Math.PI / 180,
         spiral = achemedeanSpiral;
     getImageData();
-
-    console.log(fontSizeScale);
     
     for(var tc = 0; tc< fields.length; tc++){
         var field = fields[tc];

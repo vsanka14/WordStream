@@ -2,7 +2,6 @@ import React from 'react';
 import * as d3 from 'd3';
 import './Graph.css';
 import ForceModal from '../ForceModal/ForceModal.jsx';
-import StackBar from '../stack-bar/StackBar.jsx';
 
 export default class Graph extends React.Component {
     constructor(props) {
@@ -12,7 +11,8 @@ export default class Graph extends React.Component {
         this.axisSvg = null;
         this.gridLinesSvg = null;
         this.legendSvg = null;
-        this.colorScheme = d3.scaleOrdinal(d3.schemeDark2);
+        let longColors = [...d3.schemeDark2, ...d3.schemeSet3];
+        this.colorScheme = d3.scaleOrdinal(longColors);
         this.streamSizeScale = null;
         this.boxWidth = null;
         this.stackedLayers = null;
@@ -24,7 +24,7 @@ export default class Graph extends React.Component {
         this.drawLayers = this.drawLayers.bind(this);
         this.drawBoxes = this.drawBoxes.bind(this);
         this.addInteractions = this.addInteractions.bind(this);
-        this.streamHeightScale = d3.scaleLinear().domain([400, 800]).range([0, 50]);
+        this.streamHeightScale = d3.scaleLinear().domain([400, 800]);
         this.setModalOpen = this.setModalOpen.bind(this);
         this.area = d3.area()
                     .curve(d3.curveCardinal)
@@ -48,6 +48,7 @@ export default class Graph extends React.Component {
         this.layersSvg = d3.select("#parentSvg").append('g').attr('id', 'layersSvg');
         this.gridLinesSvg = d3.select("#parentSvg").append('g').attr('id', 'gridLinesSvg');
         this.wordstreamSvg = d3.select("#parentSvg").append('g').attr('id', 'wordstreamSvg');
+        this.wordstreamSvg.attr('transform', 'translate(0, 50)');
         this.axisSvg =  d3.select("#parentSvg").append('g').attr('id', 'axisSvg');
         this.legendSvg = d3.select('#parentSvg').append('g').attr('id', 'legendSvg');
     }
@@ -68,11 +69,16 @@ export default class Graph extends React.Component {
             this.wordsData.forEach(word=>{
                 topics[word.topic] = null;
             });
+            d3.select('#wordstreamSvg').selectAll('*').remove();
             d3.select('#legendSvg').selectAll('*').remove();
+            d3.select('#axisSvg').selectAll('*').remove();
             this.drawLayers();
             this.drawWordStream();
-            this.drawAxis();
             this.drawLegends();
+            this.drawAxis();
+            this.props.setLoading(false);
+            let streamRange = this.props.activeGraph === 'youtube' ? [60, 120] : [60, 120];
+            this.streamHeightScale.range(streamRange);
         }
     }
 
@@ -81,18 +87,18 @@ export default class Graph extends React.Component {
         let xAxisScale = d3.scaleBand().domain(this.dates).range([0, 1190]);
         let gridScale = d3.scaleLinear().domain([0, this.dates.length]).range([0, 1195]);
         var xAxis = d3.axisBottom(xAxisScale);
-
-        this.axisSvg.attr('transform', 'translate(0, 900)').attr('class', 'x-axis');
+        let legendHeight = d3.select('#legendSvg').node().getBBox().height
+        this.axisSvg.attr('transform', `translate(0, ${700})`).attr('class', 'x-axis');
         let axisNodes = this.axisSvg.call(xAxis);
 
         axisNodes.selectAll('.tick text')
-        .attr('font-size', 15);
+        .attr('font-size', 11)
+        .style('font-weight', 'bold');
 
         function make_x_gridlines() {		
             return d3.axisBottom(gridScale).ticks(self.dates.length+1);
         }
-        
-        this.gridLinesSvg.attr('transform', `translate(${0},${900})`)
+        this.gridLinesSvg.attr('transform', `translate(${0},${800})`)
           .call(make_x_gridlines()
           .tickSize(-1200)
           .tickFormat("")
@@ -103,21 +109,20 @@ export default class Graph extends React.Component {
         .on('mouseover', function() {
             let text = d3.select(this);
             text.style('cursor', 'pointer');
+            text.style('filter', 'brightness(80%)')
         })
         .on('click',(year) => {
-            // this.setModalOpen(true);
             this.setState({
                 selectedYear: year
             }, ()=>{
                 this.setModalOpen(true);
             });
         });
-        console.log('year: ', this.state.selectedYear);
     }
 
     drawLegends() {
         let self = this;
-        this.legendSvg.attr('transform', 'translate(' + 0 + ',' + (300) + ')');
+        this.legendSvg.attr('transform', 'translate(' + 20 + ',' + (200) + ')');
         var legendNodes = this.legendSvg.selectAll('g').data(this.fields).enter().append('g')
             .attr('transform', function (d, i) {
                 return 'translate(' + 10 + ',' + ( (i * 10)) + ')';
@@ -216,6 +221,7 @@ export default class Graph extends React.Component {
         });
         this.wordstreamSvg.selectAll('.textData').on('click', function () {
                 // console.log('clicked');
+                self.props.setShowSideGraph(true);
                 var thisText = d3.select(this);
                 var text = thisText.text();
                 var topic = thisText.attr('topic');
@@ -255,6 +261,7 @@ export default class Graph extends React.Component {
                     .transition()
                     .duration(300)
                     .attr('transform', function (d, i) {
+                        if(thePoint[2]>=1200) thePoint[2] = 1170;
                         return 'translate(' + (thePoint[2]) + ',' + (self.streamSizeScale(thePoint[1])-5) + ')';
                     });
                     wordStreamG.append('path')
@@ -275,6 +282,7 @@ export default class Graph extends React.Component {
             });
             self.fields.forEach(topic => {
                 d3.select("path[topic='" + topic + "']").on('click', function () {
+                    self.props.setShowSideGraph(false);
                     self.wordstreamSvg.selectAll('.textData').filter(t => {
                         return t && !t.cloned && t.placed;
                     })
@@ -339,10 +347,13 @@ export default class Graph extends React.Component {
     render() {
         return(
             <div id="graphDiv">
-                <svg viewBox="0 250 1200 800" id="parentSvg" transform="translate(0, 0)"> 
+                <svg 
+                    preserveAspectRatio="xMidYMin slice"
+                    viewBox={`0 180 ${1200} ${650}`} 
+                    id="parentSvg" 
+                    transform="translate(0, 0)"> 
                 </svg>
                 <ForceModal fields={this.fields} isOpen={this.state.modalOpen} selectedYear={this.state.selectedYear} setModalOpen={this.setModalOpen} activeGraph={this.props.activeGraph}/>
-                {/* <StackBar/> */}
             </div> 
         )
     }
