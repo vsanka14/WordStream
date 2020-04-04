@@ -1,0 +1,24 @@
+{
+  "files": {
+    "main.css": "/WordStream/static/css/main.f68bcc4f.chunk.css",
+    "main.js": "/WordStream/static/js/main.7afd615b.chunk.js",
+    "main.js.map": "/WordStream/static/js/main.7afd615b.chunk.js.map",
+    "runtime-main.js": "/WordStream/static/js/runtime-main.25dd0708.js",
+    "runtime-main.js.map": "/WordStream/static/js/runtime-main.25dd0708.js.map",
+    "static/css/2.b1712ce1.chunk.css": "/WordStream/static/css/2.b1712ce1.chunk.css",
+    "static/js/2.40a91a7e.chunk.js": "/WordStream/static/js/2.40a91a7e.chunk.js",
+    "static/js/2.40a91a7e.chunk.js.map": "/WordStream/static/js/2.40a91a7e.chunk.js.map",
+    "index.html": "/WordStream/index.html",
+    "precache-manifest.5575020fe8b57eb237ab04a3bcbb485d.js": "/WordStream/precache-manifest.5575020fe8b57eb237ab04a3bcbb485d.js",
+    "service-worker.js": "/WordStream/service-worker.js",
+    "static/css/2.b1712ce1.chunk.css.map": "/WordStream/static/css/2.b1712ce1.chunk.css.map",
+    "static/css/main.f68bcc4f.chunk.css.map": "/WordStream/static/css/main.f68bcc4f.chunk.css.map"
+  },
+  "entrypoints": [
+    "static/js/runtime-main.25dd0708.js",
+    "static/css/2.b1712ce1.chunk.css",
+    "static/js/2.40a91a7e.chunk.js",
+    "static/css/main.f68bcc4f.chunk.css",
+    "static/js/main.7afd615b.chunk.js"
+  ]
+}
