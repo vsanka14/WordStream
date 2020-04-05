@@ -1,3 +1,15 @@
+# Overview of the Project
+
+With the tremendous amounts of data being generated in today’s world, it becomes important to understand the evolution of topics over time. Understanding topic evolution can aid people in professions such as politics, data analytics and academia gain knowledge of evolving trends and make decisions based on that knowledge. WordStream introduces a novel technique of performing this task. It combines two popular visualizations: stream graph and word cloud. 
+
+In addition to the base system there have two extensions:
+1. We show similar words across topics for each year by the use of a force-directed graph layout. This layout algorithm places the more interconnected terms together allowing for cluster patterns to implicitly emerge. 
+2. We are also displaying a stacked bar chart upon the click of each word with finer details about the word over time. 
+
+With these two extensions in place, we hope to make WordStream an even more powerful tool to allow the user to gain insights on large textual datasets.
+
+**Technologies Used**: ReactJS, D3, Bootstrap, Python.
+
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
 ## Available Scripts
